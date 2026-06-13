@@ -20,6 +20,14 @@ async function requestVideoStream(): Promise<MediaStream> {
       video: {
         facingMode: 'user',
         width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1920, min: 1280 },
+      },
+      audio: false,
+    },
+    {
+      video: {
+        facingMode: 'user',
+        width: { ideal: 1920, min: 1280 },
         height: { ideal: 1080, min: 720 },
       },
       audio: false,

@@ -1,13 +1,55 @@
 export const JPEG_QUALITY = 0.98
 
-export function captureFrameToCanvas(
+async function captureStillBitmap(
+  video: HTMLVideoElement,
+): Promise<ImageBitmap | null> {
+  const stream = video.srcObject
+  if (!(stream instanceof MediaStream)) {
+    return null
+  }
+
+  const track = stream.getVideoTracks()[0]
+  if (!track || typeof ImageCapture === 'undefined') {
+    return null
+  }
+
+  try {
+    const capture = new ImageCapture(track)
+    const blob = await capture.takePhoto()
+    return createImageBitmap(blob)
+  } catch {
+    return null
+  }
+}
+
+function drawSourceToCanvas(
+  ctx: CanvasRenderingContext2D,
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  mirror: boolean,
+): void {
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+
+  if (mirror) {
+    ctx.translate(width, 0)
+    ctx.scale(-1, 1)
+  }
+
+  ctx.drawImage(source, 0, 0, width, height)
+}
+
+export async function captureFrameToCanvas(
   video: HTMLVideoElement,
   mirror = true,
-): HTMLCanvasElement {
-  const width = video.videoWidth
-  const height = video.videoHeight
+): Promise<HTMLCanvasElement> {
+  const still = await captureStillBitmap(video)
+  const width = still?.width ?? video.videoWidth
+  const height = still?.height ?? video.videoHeight
 
   if (!width || !height) {
+    still?.close()
     throw new Error('Camera is not ready yet.')
   }
 
@@ -17,31 +59,27 @@ export function captureFrameToCanvas(
 
   const ctx = canvas.getContext('2d')
   if (!ctx) {
+    still?.close()
     throw new Error('Could not create canvas context.')
   }
 
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'
-
-  if (mirror) {
-    ctx.translate(width, 0)
-    ctx.scale(-1, 1)
-  }
-
-  ctx.drawImage(video, 0, 0, width, height)
+  drawSourceToCanvas(ctx, still ?? video, width, height, mirror)
+  still?.close()
 
   return canvas
 }
 
 /** Center-crop a square at the camera's full native resolution. */
-export function captureSquareFrameToCanvas(
+export async function captureSquareFrameToCanvas(
   video: HTMLVideoElement,
   mirror = true,
-): HTMLCanvasElement {
-  const width = video.videoWidth
-  const height = video.videoHeight
+): Promise<HTMLCanvasElement> {
+  const still = await captureStillBitmap(video)
+  const width = still?.width ?? video.videoWidth
+  const height = still?.height ?? video.videoHeight
 
   if (!width || !height) {
+    still?.close()
     throw new Error('Camera is not ready yet.')
   }
 
@@ -55,18 +93,23 @@ export function captureSquareFrameToCanvas(
 
   const ctx = canvas.getContext('2d')
   if (!ctx) {
+    still?.close()
     throw new Error('Could not create canvas context.')
   }
 
   ctx.imageSmoothingEnabled = false
 
+  const source = still ?? video
+
   if (mirror) {
     ctx.translate(cropSize, 0)
     ctx.scale(-1, 1)
-    ctx.drawImage(video, srcX, srcY, cropSize, cropSize, 0, 0, cropSize, cropSize)
+    ctx.drawImage(source, srcX, srcY, cropSize, cropSize, 0, 0, cropSize, cropSize)
   } else {
-    ctx.drawImage(video, srcX, srcY, cropSize, cropSize, 0, 0, cropSize, cropSize)
+    ctx.drawImage(source, srcX, srcY, cropSize, cropSize, 0, 0, cropSize, cropSize)
   }
+
+  still?.close()
 
   return canvas
 }

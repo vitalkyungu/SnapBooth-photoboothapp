@@ -93,9 +93,10 @@ function drawSquareToSlot(
   destX: number,
   destY: number,
   destSize: number,
+  dpr: number,
 ): void {
-  const scaled = downscaleToCanvas(source, destSize, destSize)
-  ctx.drawImage(scaled, destX, destY)
+  const scaled = downscaleToCanvas(source, destSize * dpr, destSize * dpr)
+  ctx.drawImage(scaled, destX, destY, destSize, destSize)
 }
 
 function drawFooter(
@@ -182,13 +183,17 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 
 export async function composeSinglePhoto(frame: HTMLCanvasElement): Promise<Blob> {
   const icon = await loadIcon()
-  const { canvas, ctx } = createHiDpiCanvas(SINGLE_WIDTH, SINGLE_HEIGHT)
+  const { canvas, ctx, dpr } = createHiDpiCanvas(SINGLE_WIDTH, SINGLE_HEIGHT)
 
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, SINGLE_WIDTH, SINGLE_HEIGHT)
 
-  const photoSlot = coverCropToCanvas(frame, PHOTO_SLOT_WIDTH, SINGLE_SLOT_HEIGHT)
-  ctx.drawImage(photoSlot, PADDING, PADDING)
+  const photoSlot = coverCropToCanvas(
+    frame,
+    PHOTO_SLOT_WIDTH * dpr,
+    SINGLE_SLOT_HEIGHT * dpr,
+  )
+  ctx.drawImage(photoSlot, PADDING, PADDING, PHOTO_SLOT_WIDTH, SINGLE_SLOT_HEIGHT)
 
   const footerTop = SINGLE_HEIGHT - FOOTER_HEIGHT
   drawFooter(ctx, SINGLE_WIDTH, footerTop, FOOTER_HEIGHT, icon)
@@ -198,7 +203,7 @@ export async function composeSinglePhoto(frame: HTMLCanvasElement): Promise<Blob
 
 export async function composePhotoStrip(frames: HTMLCanvasElement[]): Promise<Blob> {
   const icon = await loadIcon()
-  const { canvas, ctx } = createHiDpiCanvas(STRIP_WIDTH, STRIP_HEIGHT)
+  const { canvas, ctx, dpr } = createHiDpiCanvas(STRIP_WIDTH, STRIP_HEIGHT)
 
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, STRIP_WIDTH, STRIP_HEIGHT)
@@ -207,7 +212,7 @@ export async function composePhotoStrip(frames: HTMLCanvasElement[]): Promise<Bl
   for (let i = 0; i < slotCount; i += 1) {
     const slot = STRIP_PHOTO_SLOTS[i]
     const frame = frames[i]
-    drawSquareToSlot(ctx, frame, slot.x, slot.y, STRIP_SLOT_SIZE)
+    drawSquareToSlot(ctx, frame, slot.x, slot.y, STRIP_SLOT_SIZE, dpr)
   }
 
   const footerTop = STRIP_GRID_BOTTOM

@@ -74,7 +74,7 @@ export function CameraPage() {
         setShotLabel(undefined)
         await startCountdown(delay)
         playShutterFeedback()
-        const frame = captureFrameToCanvas(videoRef.current)
+        const frame = await captureFrameToCanvas(videoRef.current)
         const filtered = applyPhotoFilterToCanvas(frame, filter)
         const composed = await composeSinglePhoto(filtered)
         await finishCapture(composed)
@@ -88,7 +88,7 @@ export function CameraPage() {
         setShotLabel(`Photo ${shot} of ${totalShots}`)
         await startCountdown(delay)
         playShutterFeedback()
-        const frame = captureSquareFrameToCanvas(videoRef.current)
+        const frame = await captureSquareFrameToCanvas(videoRef.current)
         const filtered = applyPhotoFilterToCanvas(frame, filter)
         frames.push(filtered)
 
