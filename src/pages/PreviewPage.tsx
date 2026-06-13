@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { EVENT_CONFIG } from '../config/event'
 import { getPhoto } from '../lib/localGallery'
 import { isCloudConfigured, uploadPhoto } from '../lib/cloudUpload'
 import {
@@ -140,7 +139,8 @@ export function PreviewPage() {
       {shareError ? <p className="status-message error">{shareError}</p> : null}
 
       <p className="preview-hint">
-        Share opens AirDrop, Messages, and more on iPad. Cloud gallery: {EVENT_CONFIG.galleryUrl}
+        Saved to this iPad&apos;s local gallery — find it anytime under Local gallery on the home screen.
+        {canShareFiles() ? ' Share opens AirDrop, Messages, and more.' : ''}
       </p>
     </main>
   )

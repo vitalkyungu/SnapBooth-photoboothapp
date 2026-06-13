@@ -357,6 +357,13 @@ h1 {
   border-radius: var(--radius-sm);
 }
 
+.lightbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
 @media (min-width: 768px) {
   .mode-grid {
     grid-template-columns: 1fr 1fr;
